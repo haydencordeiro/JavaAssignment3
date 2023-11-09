@@ -30,9 +30,9 @@ public class SeleniumScraperAssignment3 {
 		String url;
 		
 		
-	    public static void writeDataToExcel(ArrayList<Podcast> dataList, String filePath) {
-	        try (Workbook workbook = new XSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream(filePath)) {
-	            Sheet sheet = workbook.createSheet("Sheet1");
+	    public static void writeDataToExcel(ArrayList<Podcast> dataList, String sheetName) {
+	        try (Workbook workbook = new XSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream("./output.xlsx")) {
+	            Sheet sheet = workbook.createSheet(sheetName);
 
 	            // Create header row
 	            Row headerRow = sheet.createRow(0);
@@ -67,9 +67,9 @@ public class SeleniumScraperAssignment3 {
 		String episodeDescription;
 		String episodeDuration;
 		
-	    public static void writeDataToExcel(ArrayList<PodcastEpisode> dataList, String filePath) {
-	        try (Workbook workbook = getWorkbook(filePath); FileOutputStream fileOut = new FileOutputStream(filePath)) {
-	            Sheet sheet = workbook.createSheet("Sheet3");
+	    public static void writeDataToExcel(ArrayList<PodcastEpisode> dataList, String sheetName) {
+	        try (Workbook workbook = getWorkbook("./output.xlsx"); FileOutputStream fileOut = new FileOutputStream("./output.xlsx")) {
+	            Sheet sheet = workbook.createSheet(sheetName);
 
 	            // Create header row
 	            Row headerRow = sheet.createRow(0);
@@ -109,7 +109,7 @@ public class SeleniumScraperAssignment3 {
 
     
 	
-	public static void task1(WebDriver driver) {
+	public static ArrayList<Podcast>  task1(WebDriver driver) {
 //		open the podcast website that has to be scraped
 		String url = "https://podcasts.google.com/";
 		driver.get(url);
@@ -153,18 +153,17 @@ public class SeleniumScraperAssignment3 {
         WebElement titleTextElement = driver.findElement(By.cssSelector("[aria-label='Popular & trending']"));
         String titleText = titleTextElement.getText();
         System.out.println(titleText);
-        podcastList.get(0).writeDataToExcel(podcastList, "./test.xlsx");
-
+        podcastList.get(0).writeDataToExcel(podcastList, "Podcasts");
+        return podcastList;
 	}
 	
-	public static void task2(WebDriver driver) {
-		String url = "https://podcasts.google.com/feed/aHR0cHM6Ly93d3cub21ueWNvbnRlbnQuY29tL2QvcGxheWxpc3QvZTczYzk5OGUtNmU2MC00MzJmLTg2MTAtYWUyMTAxNDBjNWIxL2E5MTAxOGE0LWVhNGYtNDEzMC1iZjU1LWFlMjcwMTgwYzMyNy80NDcxMGVjYy0xMGJiLTQ4ZDEtOTNjNy1hZTI3MDE4MGMzM2UvcG9kY2FzdC5yc3M?sa=X&ved=0CDEQjs4CKAFqFwoTCLjJuvLvt4IDFQAAAAAdAAAAABAC";
-		driver.get(url);
+	public static void task2helper(WebDriver driver, Podcast p) {
+		driver.get(p.url);
         int numberOfEpisode = 100;
 		ArrayList<PodcastEpisode> episodeData = new ArrayList<PodcastEpisode>();
 		
         List<WebElement> listOfPodcastEpisodes = driver.findElements(By.cssSelector(".LTUrYb"));
-        
+        if(listOfPodcastEpisodes.size() < numberOfEpisode) numberOfEpisode = listOfPodcastEpisodes.size();
         for(int i = 1; i < numberOfEpisode; i++)
         {
         	PodcastEpisode pe = new PodcastEpisode();
@@ -189,7 +188,14 @@ public class SeleniumScraperAssignment3 {
         	System.out.println(episodeData.get(i).episodeDescription);
         }
 		
-        episodeData.get(0).writeDataToExcel(episodeData, "./test.xlsx");
+        episodeData.get(0).writeDataToExcel(episodeData, p.name);
+	}
+	
+	public static void task2(WebDriver driver, ArrayList<Podcast> podcastList) {
+		for(int i = 0; i < 10; i++)
+		{			
+			task2helper(driver, podcastList.get(i));
+		}
 
 	}
 	
@@ -201,8 +207,8 @@ public class SeleniumScraperAssignment3 {
         WebDriver driver = new ChromeDriver();
 
         
-//        task1(driver);
-        task2(driver);
+        ArrayList<Podcast> podcastList = task1(driver);
+        task2(driver, podcastList);
 //        // Close the browser
         driver.quit();
 
